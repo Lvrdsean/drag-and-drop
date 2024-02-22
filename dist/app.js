@@ -1,12 +1,71 @@
-"use strict";
-var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
-    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
-    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
-    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
-    return c > 3 && r && Object.defineProperty(target, key, r), r;
+// Project State Management
+var __runInitializers = (this && this.__runInitializers) || function (thisArg, initializers, value) {
+    var useValue = arguments.length > 2;
+    for (var i = 0; i < initializers.length; i++) {
+        value = useValue ? initializers[i].call(thisArg, value) : initializers[i].call(thisArg);
+    }
+    return useValue ? value : void 0;
 };
+var __esDecorate = (this && this.__esDecorate) || function (ctor, descriptorIn, decorators, contextIn, initializers, extraInitializers) {
+    function accept(f) { if (f !== void 0 && typeof f !== "function") throw new TypeError("Function expected"); return f; }
+    var kind = contextIn.kind, key = kind === "getter" ? "get" : kind === "setter" ? "set" : "value";
+    var target = !descriptorIn && ctor ? contextIn["static"] ? ctor : ctor.prototype : null;
+    var descriptor = descriptorIn || (target ? Object.getOwnPropertyDescriptor(target, contextIn.name) : {});
+    var _, done = false;
+    for (var i = decorators.length - 1; i >= 0; i--) {
+        var context = {};
+        for (var p in contextIn) context[p] = p === "access" ? {} : contextIn[p];
+        for (var p in contextIn.access) context.access[p] = contextIn.access[p];
+        context.addInitializer = function (f) { if (done) throw new TypeError("Cannot add initializers after decoration has completed"); extraInitializers.push(accept(f || null)); };
+        var result = (0, decorators[i])(kind === "accessor" ? { get: descriptor.get, set: descriptor.set } : descriptor[key], context);
+        if (kind === "accessor") {
+            if (result === void 0) continue;
+            if (result === null || typeof result !== "object") throw new TypeError("Object expected");
+            if (_ = accept(result.get)) descriptor.get = _;
+            if (_ = accept(result.set)) descriptor.set = _;
+            if (_ = accept(result.init)) initializers.unshift(_);
+        }
+        else if (_ = accept(result)) {
+            if (kind === "field") initializers.unshift(_);
+            else descriptor[key] = _;
+        }
+    }
+    if (target) Object.defineProperty(target, contextIn.name, descriptor);
+    done = true;
+};
+var ProjectState = /** @class */ (function () {
+    function ProjectState() {
+        this.listeners = [];
+        this.projects = [];
+    }
+    ProjectState.getInstance = function () {
+        if (this.instance) {
+            return this.instance;
+        }
+        this.instance = new ProjectState();
+        return this.instance;
+    };
+    ProjectState.prototype.addListener = function (listenerFn) {
+        this.listeners.push(listenerFn);
+    };
+    ProjectState.prototype.addProject = function (title, description, numOfPeople) {
+        var newProject = {
+            id: Math.random().toString(),
+            title: title,
+            description: description,
+            people: numOfPeople,
+        };
+        this.projects.push(newProject);
+        for (var _i = 0, _a = this.listeners; _i < _a.length; _i++) {
+            var listenerFn = _a[_i];
+            listenerFn(this.projects.slice());
+        }
+    };
+    return ProjectState;
+}());
+var projectState = ProjectState.getInstance();
 function validate(validatableInput) {
-    let isValid = true;
+    var isValid = true;
     if (validatableInput.required) {
         isValid =
             isValid && validatableInput.value.toString().trim().length !== 0;
@@ -33,105 +92,134 @@ function validate(validatableInput) {
     }
     return isValid;
 }
+// autobind decorator
 function autobind(_, _2, descriptor) {
-    const originalMethod = descriptor.value;
-    const adjDescriptor = {
+    var originalMethod = descriptor.value;
+    var adjDescriptor = {
         configurable: true,
-        get() {
-            const boundFn = originalMethod.bind(this);
+        get: function () {
+            var boundFn = originalMethod.bind(this);
             return boundFn;
         },
     };
     return adjDescriptor;
 }
-class ProjectList {
-    constructor(type) {
+// ProjectList Class
+var ProjectList = /** @class */ (function () {
+    function ProjectList(type) {
+        var _this = this;
         this.type = type;
         this.templateElement = document.getElementById("project-list");
         this.hostElement = document.getElementById("app");
-        const importedNode = document.importNode(this.templateElement.content, true);
+        this.assignedProjects = [];
+        var importedNode = document.importNode(this.templateElement.content, true);
         this.element = importedNode.firstElementChild;
-        this.element.id = `${this.type}-projects`;
+        this.element.id = "".concat(this.type, "-projects");
+        projectState.addListener(function (projects) {
+            _this.assignedProjects = projects;
+            _this.renderProjects();
+        });
         this.attach();
         this.renderContent();
     }
-    renderContent() {
-        const listId = `${this.type}-projects-list`;
+    ProjectList.prototype.renderProjects = function () {
+        var listEl = document.getElementById("".concat(this.type, "-projects-list"));
+        for (var _i = 0, _a = this.assignedProjects; _i < _a.length; _i++) {
+            var prjItem = _a[_i];
+            var listItem = document.createElement("li");
+            listItem.textContent = prjItem.title;
+            listEl.appendChild(listItem);
+        }
+    };
+    ProjectList.prototype.renderContent = function () {
+        var listId = "".concat(this.type, "-projects-list");
         this.element.querySelector("ul").id = listId;
         this.element.querySelector("h2").textContent =
             this.type.toUpperCase() + " PROJECTS";
-    }
-    attach() {
+    };
+    ProjectList.prototype.attach = function () {
         this.hostElement.insertAdjacentElement("beforeend", this.element);
-    }
-}
-class ProjectInput {
-    constructor() {
-        this.templateElement = document.getElementById("project-input");
-        this.hostElement = document.getElementById("app");
-        const importedNode = document.importNode(this.templateElement.content, true);
-        this.element = importedNode.firstElementChild;
-        this.element.id = "user-input";
-        this.titleInputElement = this.element.querySelector("#title");
-        this.descriptionInputElement = this.element.querySelector("#description");
-        this.peopleInputElement = this.element.querySelector("#people");
-        this.configure();
-        this.attach();
-    }
-    gatherUserInput() {
-        const enteredTitle = this.titleInputElement.value;
-        const enteredDescription = this.descriptionInputElement.value;
-        const enteredPeople = this.peopleInputElement.value;
-        const titleValidatable = {
-            value: enteredTitle,
-            required: true,
-        };
-        const descriptionValidatable = {
-            value: enteredDescription,
-            required: true,
-            minLength: 5,
-        };
-        const peopleValidatable = {
-            value: +enteredPeople,
-            required: true,
-            min: 1,
-            max: 5,
-        };
-        if (!validate(titleValidatable) ||
-            !validate(descriptionValidatable) ||
-            !validate(peopleValidatable)) {
-            alert("Invalid input, please try again!");
-            return;
-        }
-        else {
-            return [enteredTitle, enteredDescription, +enteredPeople];
-        }
-    }
-    clearInputs() {
-        this.titleInputElement.value = "";
-        this.descriptionInputElement.value = "";
-        this.peopleInputElement.value = "";
-    }
-    submitHandler(event) {
-        event.preventDefault();
-        const userInput = this.gatherUserInput();
-        if (Array.isArray(userInput)) {
-            const [title, desc, people] = userInput;
-            console.log(title, desc, people);
-            this.clearInputs();
-        }
-    }
-    configure() {
-        this.element.addEventListener("submit", this.submitHandler);
-    }
-    attach() {
-        this.hostElement.insertAdjacentElement("afterbegin", this.element);
-    }
-}
-__decorate([
-    autobind
-], ProjectInput.prototype, "submitHandler", null);
-const prjInput = new ProjectInput();
-const activePrjList = new ProjectList("active");
-const finishedPrjList = new ProjectList("finished");
-//# sourceMappingURL=app.js.map
+    };
+    return ProjectList;
+}());
+// ProjectInput Class
+var ProjectInput = function () {
+    var _a;
+    var _instanceExtraInitializers = [];
+    var _submitHandler_decorators;
+    return _a = /** @class */ (function () {
+            function ProjectInput() {
+                this.templateElement = (__runInitializers(this, _instanceExtraInitializers), void 0);
+                this.templateElement = document.getElementById("project-input");
+                this.hostElement = document.getElementById("app");
+                var importedNode = document.importNode(this.templateElement.content, true);
+                this.element = importedNode.firstElementChild;
+                this.element.id = "user-input";
+                this.titleInputElement = this.element.querySelector("#title");
+                this.descriptionInputElement = this.element.querySelector("#description");
+                this.peopleInputElement = this.element.querySelector("#people");
+                this.configure();
+                this.attach();
+            }
+            ProjectInput.prototype.gatherUserInput = function () {
+                var enteredTitle = this.titleInputElement.value;
+                var enteredDescription = this.descriptionInputElement.value;
+                var enteredPeople = this.peopleInputElement.value;
+                var titleValidatable = {
+                    value: enteredTitle,
+                    required: true,
+                };
+                var descriptionValidatable = {
+                    value: enteredDescription,
+                    required: true,
+                    minLength: 5,
+                };
+                var peopleValidatable = {
+                    value: +enteredPeople,
+                    required: true,
+                    min: 1,
+                    max: 5,
+                };
+                if (!validate(titleValidatable) ||
+                    !validate(descriptionValidatable) ||
+                    !validate(peopleValidatable)) {
+                    alert("Invalid input, please try again!");
+                    return;
+                }
+                else {
+                    return [enteredTitle, enteredDescription, +enteredPeople];
+                }
+            };
+            ProjectInput.prototype.clearInputs = function () {
+                this.titleInputElement.value = "";
+                this.descriptionInputElement.value = "";
+                this.peopleInputElement.value = "";
+            };
+            ProjectInput.prototype.submitHandler = function (event) {
+                event.preventDefault();
+                var userInput = this.gatherUserInput();
+                if (Array.isArray(userInput)) {
+                    var title = userInput[0], desc = userInput[1], people = userInput[2];
+                    projectState.addProject(title, desc, people);
+                    this.clearInputs();
+                }
+            };
+            ProjectInput.prototype.configure = function () {
+                this.element.addEventListener("submit", this.submitHandler);
+            };
+            ProjectInput.prototype.attach = function () {
+                this.hostElement.insertAdjacentElement("afterbegin", this.element);
+            };
+            return ProjectInput;
+        }()),
+        (function () {
+            var _metadata = typeof Symbol === "function" && Symbol.metadata ? Object.create(null) : void 0;
+            _submitHandler_decorators = [autobind];
+            __esDecorate(_a, null, _submitHandler_decorators, { kind: "method", name: "submitHandler", static: false, private: false, access: { has: function (obj) { return "submitHandler" in obj; }, get: function (obj) { return obj.submitHandler; } }, metadata: _metadata }, null, _instanceExtraInitializers);
+            if (_metadata) Object.defineProperty(_a, Symbol.metadata, { enumerable: true, configurable: true, writable: true, value: _metadata });
+        })(),
+        _a;
+}();
+var prjInput = new ProjectInput();
+var activePrjList = new ProjectList("active");
+var finishedPrjList = new ProjectList("finished");
