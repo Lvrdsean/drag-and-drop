@@ -89,6 +89,16 @@ var ProjectState = /** @class */ (function (_super) {
     ProjectState.prototype.addProject = function (title, description, numOfPeople) {
         var newProject = new Project(Math.random().toString(), title, description, numOfPeople, ProjectStatus.Active);
         this.projects.push(newProject);
+        this.updateListeners();
+    };
+    ProjectState.prototype.moveProject = function (projectId, newStatus) {
+        var project = this.projects.find(function (prj) { return prj.id === projectId; });
+        if (project && project.status !== newStatus) {
+            project.status = newStatus;
+            this.updateListeners();
+        }
+    };
+    ProjectState.prototype.updateListeners = function () {
         for (var _i = 0, _a = this.listeners; _i < _a.length; _i++) {
             var listenerFn = _a[_i];
             listenerFn(this.projects.slice());
@@ -183,7 +193,8 @@ var ProjectItem = function () {
                 configurable: true
             });
             ProjectItem.prototype.dragStartHandler = function (event) {
-                console.log(event);
+                event.dataTransfer.setData("text/plain", this.project.id);
+                event.dataTransfer.effectAllowed = "move";
             };
             ProjectItem.prototype.dragEndHandler = function (_) {
                 console.log("DragEnd");
@@ -215,6 +226,7 @@ var ProjectList = function () {
     var _classSuper = Component;
     var _instanceExtraInitializers = [];
     var _dragOverHandler_decorators;
+    var _dropHandler_decorators;
     var _dragLeaveHandler_decorators;
     return _a = /** @class */ (function (_super) {
             __extends(ProjectList, _super);
@@ -226,11 +238,20 @@ var ProjectList = function () {
                 _this.renderContent();
                 return _this;
             }
-            ProjectList.prototype.dragOverHandler = function (_) {
-                var listEl = this.element.querySelector("ul");
-                listEl.classList.add("droppable");
+            ProjectList.prototype.dragOverHandler = function (event) {
+                if (event.dataTransfer &&
+                    event.dataTransfer.types[0] === "text/plain") {
+                    event.preventDefault();
+                    var listEl = this.element.querySelector("ul");
+                    listEl.classList.add("droppable");
+                }
             };
-            ProjectList.prototype.dropHandler = function (_) { };
+            ProjectList.prototype.dropHandler = function (event) {
+                var prjId = event.dataTransfer.getData("text/plain");
+                projectState.moveProject(prjId, this.type === "active"
+                    ? ProjectStatus.Active
+                    : ProjectStatus.Finished);
+            };
             ProjectList.prototype.dragLeaveHandler = function (_) {
                 var listEl = this.element.querySelector("ul");
                 listEl.classList.remove("droppable");
@@ -271,8 +292,10 @@ var ProjectList = function () {
             var _b;
             var _metadata = typeof Symbol === "function" && Symbol.metadata ? Object.create((_b = _classSuper[Symbol.metadata]) !== null && _b !== void 0 ? _b : null) : void 0;
             _dragOverHandler_decorators = [autobind];
+            _dropHandler_decorators = [autobind];
             _dragLeaveHandler_decorators = [autobind];
             __esDecorate(_a, null, _dragOverHandler_decorators, { kind: "method", name: "dragOverHandler", static: false, private: false, access: { has: function (obj) { return "dragOverHandler" in obj; }, get: function (obj) { return obj.dragOverHandler; } }, metadata: _metadata }, null, _instanceExtraInitializers);
+            __esDecorate(_a, null, _dropHandler_decorators, { kind: "method", name: "dropHandler", static: false, private: false, access: { has: function (obj) { return "dropHandler" in obj; }, get: function (obj) { return obj.dropHandler; } }, metadata: _metadata }, null, _instanceExtraInitializers);
             __esDecorate(_a, null, _dragLeaveHandler_decorators, { kind: "method", name: "dragLeaveHandler", static: false, private: false, access: { has: function (obj) { return "dragLeaveHandler" in obj; }, get: function (obj) { return obj.dragLeaveHandler; } }, metadata: _metadata }, null, _instanceExtraInitializers);
             if (_metadata) Object.defineProperty(_a, Symbol.metadata, { enumerable: true, configurable: true, writable: true, value: _metadata });
         })(),
