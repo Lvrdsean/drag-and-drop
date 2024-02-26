@@ -210,45 +210,74 @@ var ProjectItem = function () {
         _a;
 }();
 // ProjectList Class
-var ProjectList = /** @class */ (function (_super) {
-    __extends(ProjectList, _super);
-    function ProjectList(type) {
-        var _this = _super.call(this, "project-list", "app", false, "".concat(type, "-projects")) || this;
-        _this.type = type;
-        _this.assignedProjects = [];
-        _this.configure();
-        _this.renderContent();
-        return _this;
-    }
-    ProjectList.prototype.configure = function () {
-        var _this = this;
-        projectState.addListener(function (projects) {
-            var relevantProjects = projects.filter(function (prj) {
-                if (_this.type === "active") {
-                    return prj.status === ProjectStatus.Active;
+var ProjectList = function () {
+    var _a;
+    var _classSuper = Component;
+    var _instanceExtraInitializers = [];
+    var _dragOverHandler_decorators;
+    var _dragLeaveHandler_decorators;
+    return _a = /** @class */ (function (_super) {
+            __extends(ProjectList, _super);
+            function ProjectList(type) {
+                var _this = _super.call(this, "project-list", "app", false, "".concat(type, "-projects")) || this;
+                _this.type = (__runInitializers(_this, _instanceExtraInitializers), type);
+                _this.assignedProjects = [];
+                _this.configure();
+                _this.renderContent();
+                return _this;
+            }
+            ProjectList.prototype.dragOverHandler = function (_) {
+                var listEl = this.element.querySelector("ul");
+                listEl.classList.add("droppable");
+            };
+            ProjectList.prototype.dropHandler = function (_) { };
+            ProjectList.prototype.dragLeaveHandler = function (_) {
+                var listEl = this.element.querySelector("ul");
+                listEl.classList.remove("droppable");
+            };
+            ProjectList.prototype.configure = function () {
+                var _this = this;
+                this.element.addEventListener("dragover", this.dragOverHandler);
+                this.element.addEventListener("dragleave", this.dragLeaveHandler);
+                this.element.addEventListener("drop", this.dropHandler);
+                projectState.addListener(function (projects) {
+                    var relevantProjects = projects.filter(function (prj) {
+                        if (_this.type === "active") {
+                            return prj.status === ProjectStatus.Active;
+                        }
+                        return prj.status === ProjectStatus.Finished;
+                    });
+                    _this.assignedProjects = relevantProjects;
+                    _this.renderProjects();
+                });
+            };
+            ProjectList.prototype.renderContent = function () {
+                var listId = "".concat(this.type, "-projects-list");
+                this.element.querySelector("ul").id = listId;
+                this.element.querySelector("h2").textContent =
+                    this.type.toUpperCase() + " PROJECTS";
+            };
+            ProjectList.prototype.renderProjects = function () {
+                var listEl = document.getElementById("".concat(this.type, "-projects-list"));
+                listEl.innerHTML = "";
+                for (var _i = 0, _b = this.assignedProjects; _i < _b.length; _i++) {
+                    var prjItem = _b[_i];
+                    new ProjectItem(this.element.querySelector("ul").id, prjItem);
                 }
-                return prj.status === ProjectStatus.Finished;
-            });
-            _this.assignedProjects = relevantProjects;
-            _this.renderProjects();
-        });
-    };
-    ProjectList.prototype.renderContent = function () {
-        var listId = "".concat(this.type, "-projects-list");
-        this.element.querySelector("ul").id = listId;
-        this.element.querySelector("h2").textContent =
-            this.type.toUpperCase() + " PROJECTS";
-    };
-    ProjectList.prototype.renderProjects = function () {
-        var listEl = document.getElementById("".concat(this.type, "-projects-list"));
-        listEl.innerHTML = "";
-        for (var _i = 0, _a = this.assignedProjects; _i < _a.length; _i++) {
-            var prjItem = _a[_i];
-            new ProjectItem(this.element.querySelector("ul").id, prjItem);
-        }
-    };
-    return ProjectList;
-}(Component));
+            };
+            return ProjectList;
+        }(_classSuper)),
+        (function () {
+            var _b;
+            var _metadata = typeof Symbol === "function" && Symbol.metadata ? Object.create((_b = _classSuper[Symbol.metadata]) !== null && _b !== void 0 ? _b : null) : void 0;
+            _dragOverHandler_decorators = [autobind];
+            _dragLeaveHandler_decorators = [autobind];
+            __esDecorate(_a, null, _dragOverHandler_decorators, { kind: "method", name: "dragOverHandler", static: false, private: false, access: { has: function (obj) { return "dragOverHandler" in obj; }, get: function (obj) { return obj.dragOverHandler; } }, metadata: _metadata }, null, _instanceExtraInitializers);
+            __esDecorate(_a, null, _dragLeaveHandler_decorators, { kind: "method", name: "dragLeaveHandler", static: false, private: false, access: { has: function (obj) { return "dragLeaveHandler" in obj; }, get: function (obj) { return obj.dragLeaveHandler; } }, metadata: _metadata }, null, _instanceExtraInitializers);
+            if (_metadata) Object.defineProperty(_a, Symbol.metadata, { enumerable: true, configurable: true, writable: true, value: _metadata });
+        })(),
+        _a;
+}();
 // ProjectInput Class
 var ProjectInput = function () {
     var _a;
