@@ -155,36 +155,60 @@ var Component = /** @class */ (function () {
     return Component;
 }());
 // ProjectItem Class
-var ProjectItem = /** @class */ (function (_super) {
-    __extends(ProjectItem, _super);
-    function ProjectItem(hostId, project) {
-        var _this = _super.call(this, "single-project", hostId, false, project.id) || this;
-        _this.project = project;
-        _this.configure();
-        _this.renderContent();
-        return _this;
-    }
-    Object.defineProperty(ProjectItem.prototype, "persons", {
-        get: function () {
-            if (this.project.people === 1) {
-                return "1 person";
+var ProjectItem = function () {
+    var _a;
+    var _classSuper = Component;
+    var _instanceExtraInitializers = [];
+    var _dragStartHandler_decorators;
+    return _a = /** @class */ (function (_super) {
+            __extends(ProjectItem, _super);
+            function ProjectItem(hostId, project) {
+                var _this = _super.call(this, "single-project", hostId, false, project.id) || this;
+                _this.project = (__runInitializers(_this, _instanceExtraInitializers), void 0);
+                _this.project = project;
+                _this.configure();
+                _this.renderContent();
+                return _this;
             }
-            else {
-                return "".concat(this.project.people, " persons");
-            }
-        },
-        enumerable: false,
-        configurable: true
-    });
-    ProjectItem.prototype.configure = function () { };
-    ProjectItem.prototype.renderContent = function () {
-        this.element.querySelector("h2").textContent = this.project.title;
-        this.element.querySelector("h3").textContent =
-            this.persons + " assigned";
-        this.element.querySelector("p").textContent = this.project.description;
-    };
-    return ProjectItem;
-}(Component));
+            Object.defineProperty(ProjectItem.prototype, "persons", {
+                get: function () {
+                    if (this.project.people === 1) {
+                        return "1 person";
+                    }
+                    else {
+                        return "".concat(this.project.people, " persons");
+                    }
+                },
+                enumerable: false,
+                configurable: true
+            });
+            ProjectItem.prototype.dragStartHandler = function (event) {
+                console.log(event);
+            };
+            ProjectItem.prototype.dragEndHandler = function (_) {
+                console.log("DragEnd");
+            };
+            ProjectItem.prototype.configure = function () {
+                this.element.addEventListener("dragstart", this.dragStartHandler);
+                this.element.addEventListener("dragend", this.dragEndHandler);
+            };
+            ProjectItem.prototype.renderContent = function () {
+                this.element.querySelector("h2").textContent = this.project.title;
+                this.element.querySelector("h3").textContent =
+                    this.persons + " assigned";
+                this.element.querySelector("p").textContent = this.project.description;
+            };
+            return ProjectItem;
+        }(_classSuper)),
+        (function () {
+            var _b;
+            var _metadata = typeof Symbol === "function" && Symbol.metadata ? Object.create((_b = _classSuper[Symbol.metadata]) !== null && _b !== void 0 ? _b : null) : void 0;
+            _dragStartHandler_decorators = [autobind];
+            __esDecorate(_a, null, _dragStartHandler_decorators, { kind: "method", name: "dragStartHandler", static: false, private: false, access: { has: function (obj) { return "dragStartHandler" in obj; }, get: function (obj) { return obj.dragStartHandler; } }, metadata: _metadata }, null, _instanceExtraInitializers);
+            if (_metadata) Object.defineProperty(_a, Symbol.metadata, { enumerable: true, configurable: true, writable: true, value: _metadata });
+        })(),
+        _a;
+}();
 // ProjectList Class
 var ProjectList = /** @class */ (function (_super) {
     __extends(ProjectList, _super);
